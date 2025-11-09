@@ -57,7 +57,7 @@ app.prepare().then(() => {
     });
   });
 
-  httpServer.listen(port, () => {
-    console.log(`🚀 Server ready at http://${hostname}:${port}`);
+  httpServer.listen(port, hostname, () => {
+    console.log(`🚀 Server ready at http://3.88.37.132:${port}`);
   });
 });
