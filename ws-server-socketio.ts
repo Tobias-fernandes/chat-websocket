@@ -3,7 +3,7 @@ import next from "next";
 import { Server } from "socket.io";
 
 const dev = process.env.NODE_ENV !== "production";
-const hostname = "localhost";
+const hostname = "http://3.88.37.132:4001";
 const port = 4000;
 
 const app = next({ dev, hostname, port });
@@ -29,7 +29,7 @@ app.prepare().then(() => {
 
   const io = new Server(httpServer, {
     cors: {
-      origin: ["http://localhost:3000"],
+      origin: ["*"],
       methods: ["GET", "POST"],
       credentials: true,
     },
