@@ -2,9 +2,9 @@ import { createServer } from "node:http";
 import next from "next";
 import { Server } from "socket.io";
 
-const dev = process.env.NODE_ENV !== "production";
-const hostname = "0.0.0.0"; // aceita conexões externas
-const port = 4001;
+const dev = process.env.NODE_ENV !== "production"; // Verifica se está em modo de desenvolvimento
+const hostname = "localhost"; // Nome do host
+const port = 4000; // Porta do servidor WebSocket
 
 const app = next({ dev, hostname, port });
 const handler = app.getRequestHandler();
@@ -29,7 +29,7 @@ app.prepare().then(() => {
 
   const io = new Server(httpServer, {
     cors: {
-      origin: ["*"],
+      origin: ["http://localhost:3000"],
       methods: ["GET", "POST"],
       credentials: true,
     },
@@ -57,7 +57,7 @@ app.prepare().then(() => {
     });
   });
 
-  httpServer.listen(port, hostname, () => {
-    console.log(`🚀 Server ready at http://3.88.37.132:${port}`);
+  httpServer.listen(port, () => {
+    console.log(`🚀 Server ready at http://${hostname}:${port}`);
   });
 });

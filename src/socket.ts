@@ -1,6 +1,7 @@
 import { io } from "socket.io-client";
 
-const socket = io("http://3.88.37.132:4001", {
+// Configuração do socket.io client com o endereço do servidor
+const socket = io("http://localhost:4000", {
   withCredentials: true,
   transports: ["websocket"],
 });
