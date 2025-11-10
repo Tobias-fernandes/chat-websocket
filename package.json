@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "rm -rf .next/dev/lock && next dev",
+    "dev": "next dev",
     "ws-server-socketio": "tsx ws-server-socketio.ts --watch",
     "build": "next build",
     "start": "next start",

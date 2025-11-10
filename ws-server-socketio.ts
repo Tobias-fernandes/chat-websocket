@@ -26,7 +26,10 @@ app.prepare().then(() => {
   const io = new Server(httpServer, {
     cors: {
       // Configuração de CORS
-      origin: ["http://localhost:3000"],
+      origin: [
+        "https://chat-websocket-blush.vercel.app/",
+        "http://localhost:3000",
+      ],
       methods: ["GET", "POST"],
       credentials: true,
     },
