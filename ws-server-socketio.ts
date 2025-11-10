@@ -1,21 +1,16 @@
-import { createServer } from "node:http";
-import next from "next";
-import { Server } from "socket.io";
+import { createServer } from "node:http"; // Importa o módulo HTTP do Node.js
+import next from "next"; // Importa o Next.js
+import { Server } from "socket.io"; // Importa o Socket.IO
+import { Message } from "@/types";
 
 const dev = process.env.NODE_ENV !== "production"; // Verifica se está em modo de desenvolvimento
-const hostname = "localhost"; // Nome do host
+const hostname = "34.229.147.171"; // Nome do host
 const port = 4000; // Porta do servidor WebSocket
 
-const app = next({ dev, hostname, port });
-const handler = app.getRequestHandler();
+const app = next({ dev, hostname, port }); // Cria uma instância do Next.js
+const handler = app.getRequestHandler(); // Obtém o manipulador de requisições do Next.js
 
-interface Message {
-  msg: string;
-  name: string;
-  id: string;
-}
-
-// 🔹 Armazenamento em memória (você pode salvar no banco depois)
+// Armazenamento em memória simples para o histórico de mensagens
 const messages: Message[] = [
   {
     msg: "Welcome to the chat!",
@@ -24,40 +19,45 @@ const messages: Message[] = [
   },
 ];
 
+// Prepara o aplicativo Next.js e inicia o servidor HTTP com Socket.IO
 app.prepare().then(() => {
   const httpServer = createServer(handler);
 
   const io = new Server(httpServer, {
     cors: {
+      // Configuração de CORS
       origin: ["http://localhost:3000"],
       methods: ["GET", "POST"],
       credentials: true,
     },
   });
 
+  // Evento ocorre assim que um cliente se conecta ao servidor Socket.IO
   io.on("connection", (socket) => {
-    console.log(`✅ New client connected: ${socket.id}`);
+    console.log(`New client connected: ${socket.id}`);
 
-    // 🔹 Cliente pede histórico explicitamente
+    // Evento para enviar o histórico de mensagens ao cliente
     socket.on("getPreviousMessages", () => {
-      console.log(`📜 Sending history to ${socket.id}`);
-      socket.emit("previousMessages", messages);
+      console.log(`Sending history to ${socket.id}`);
+      socket.emit("previousMessages", messages); // envia o histórico armazenado
     });
 
-    // 🔹 Nova mensagem recebida
+    // Evento para nova mensagem recebida
     socket.on("message", (data: Message) => {
-      console.log(`💬 ${data.name}: ${data.msg}`);
+      console.log(`${data.name}: ${data.msg}`);
 
       messages.push(data); // salva no histórico
       io.emit("message", data); // envia pra todos os clientes
     });
 
+    // Evento ocorre quando o cliente se desconecta
     socket.on("disconnect", () => {
-      console.log(`❌ Client disconnected: ${socket.id}`);
+      console.log(`Client disconnected: ${socket.id}`);
     });
   });
 
+  // Inicia o servidor HTTP
   httpServer.listen(port, () => {
-    console.log(`🚀 Server ready at http://${hostname}:${port}`);
+    console.log(`Server ready at http://${hostname}:${port}`);
   });
 });

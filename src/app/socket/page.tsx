@@ -18,13 +18,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { useChatScroll } from "@/utils/useChatScroll";
 import { getOrCreateUserId } from "@/utils/getUserID";
 import { onEnterPress } from "@/utils/submitInputWithEnter";
-
-// interface para a estrutura da mensagem
-interface Message {
-  msg: string;
-  name: string;
-  id: string;
-}
+import { Message } from "@/types";
 
 export default function ChatPage() {
   const router = useRouter();
@@ -40,15 +34,15 @@ export default function ChatPage() {
 
   /** Carrega o nome do usuário */
   const loadUserName = useCallback(() => {
-    const storedName = localStorage.getItem("username");
-    if (!storedName) return router.push("/");
-    setUsername(storedName);
+    const storedName = localStorage.getItem("username"); // obtém nome do localStorage
+    if (!storedName) return router.push("/"); // caso não exista, redireciona para a página inicial
+    setUsername(storedName); // seta o nome de usuário no state
   }, [router]);
 
   /** Conectou no servidor */
   const handleConnect = useCallback(() => {
-    setIsConnected(true);
-    setTransport(socket.io.engine.transport.name);
+    setIsConnected(true); // atualiza estado de conexão
+    setTransport(socket.io.engine.transport.name); // define o transporte atual
 
     // Solicita o histórico de mensagens apenas uma vez
     if (!hasRequestedHistory) {
@@ -66,32 +60,32 @@ export default function ChatPage() {
   }, [hasRequestedHistory]);
 
   /** Desconectou */
-  function handleDisconnect() {
+  const handleDisconnect = () => {
     setIsConnected(false);
     setTransport("N/A");
-  }
+  };
 
   /** Mensagem nova recebida */
-  function handleMessage(data: Message) {
+  const handleMessage = (data: Message) => {
     setMessages((prev) => [...prev, data]);
-  }
+  };
 
   /** Recebe histórico completo */
-  function handlePreviousMessages(data: Message[]) {
+  const handlePreviousMessages = (data: Message[]) => {
     console.log("📜 Histórico recebido:", data);
     setMessages(data);
     setIsLoading(false);
-  }
+  };
 
   /** Envia uma nova mensagem */
-  function handleSendMessage() {
+  const handleSendMessage = () => {
     if (!inputValue.trim() || !username) return;
 
     const messageData = { msg: inputValue, id: userId, name: username };
     socket.emit("message", messageData);
 
     setInputValue("");
-  }
+  };
 
   /** Inicialização do socket */
   useEffect(() => {
