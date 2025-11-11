@@ -4,7 +4,7 @@ import { Server } from "socket.io"; // Importa o Socket.IO
 import { Message } from "@/types";
 
 const dev = process.env.NODE_ENV !== "production"; // Verifica se está em modo de desenvolvimento
-const hostname = "34.229.147.171"; // Nome do host
+const hostname = "52.204.130.236"; // Nome do host
 const port = 4000; // Porta do servidor WebSocket
 
 const app = next({ dev, hostname, port }); // Cria uma instância do Next.js
