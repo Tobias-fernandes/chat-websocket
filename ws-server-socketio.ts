@@ -1,14 +1,9 @@
-import { createServer } from "node:http"; // Importa o módulo HTTP do Node.js
-import next from "next"; // Importa o Next.js
-import { Server } from "socket.io"; // Importa o Socket.IO
+import express from "express";
+import { createServer } from "node:http";
+import { Server } from "socket.io";
 import { Message } from "@/types";
 
-const dev = process.env.NODE_ENV !== "production"; // Verifica se está em modo de desenvolvimento
-const hostname = "52.204.130.236"; // Nome do host
-const port = 4000; // Porta do servidor WebSocket
-
-const app = next({ dev, hostname, port }); // Cria uma instância do Next.js
-const handler = app.getRequestHandler(); // Obtém o manipulador de requisições do Next.js
+const port = 4000;
 
 // Armazenamento em memória simples para o histórico de mensagens
 const messages: Message[] = [
@@ -19,48 +14,43 @@ const messages: Message[] = [
   },
 ];
 
-// Prepara o aplicativo Next.js e inicia o servidor HTTP com Socket.IO
-app.prepare().then(() => {
-  const httpServer = createServer(handler);
+const app = express();
+const httpServer = createServer(app);
 
-  const io = new Server(httpServer, {
-    cors: {
-      // Configuração de CORS
-      origin: [
-        "https://chat-websocket-blush.vercel.app/",
-        "http://localhost:3000",
-      ],
-      methods: ["GET", "POST"],
-      credentials: true,
-    },
+// Configuração do servidor Socket.IO
+const io = new Server(httpServer, {
+  cors: {
+    origin: [
+      "https://chat-websocket-blush.vercel.app", // Front hospedado na Vercel
+      "http://localhost:3000", // Ambiente local
+    ],
+    methods: ["GET", "POST"],
+    credentials: true,
+  },
+});
+
+// Eventos do socket
+io.on("connection", (socket) => {
+  console.log(`🟢 Novo cliente conectado: ${socket.id}`);
+
+  socket.on("getPreviousMessages", () => {
+    socket.emit("previousMessages", messages);
   });
 
-  // Evento ocorre assim que um cliente se conecta ao servidor Socket.IO
-  io.on("connection", (socket) => {
-    console.log(`New client connected: ${socket.id}`);
-
-    // Evento para enviar o histórico de mensagens ao cliente
-    socket.on("getPreviousMessages", () => {
-      console.log(`Sending history to ${socket.id}`);
-      socket.emit("previousMessages", messages); // envia o histórico armazenado
-    });
-
-    // Evento para nova mensagem recebida
-    socket.on("message", (data: Message) => {
-      console.log(`${data.name}: ${data.msg}`);
-
-      messages.push(data); // salva no histórico
-      io.emit("message", data); // envia pra todos os clientes
-    });
-
-    // Evento ocorre quando o cliente se desconecta
-    socket.on("disconnect", () => {
-      console.log(`Client disconnected: ${socket.id}`);
-    });
+  socket.on("message", (data: Message) => {
+    console.log(`${data.name}: ${data.msg}`);
+    messages.push(data);
+    io.emit("message", data);
   });
 
-  // Inicia o servidor HTTP
-  httpServer.listen(port, () => {
-    console.log(`Server ready at http://${hostname}:${port}`);
+  socket.on("disconnect", () => {
+    console.log(`🔴 Cliente desconectado: ${socket.id}`);
   });
+});
+
+// Inicializa o servidor HTTP
+httpServer.listen(port, () => {
+  console.log(`🚀 Servidor WebSocket rodando na porta ${port}`);
+  console.log("✅ Execute agora:");
+  console.log("   cloudflared tunnel --url http://localhost:4000");
 });
