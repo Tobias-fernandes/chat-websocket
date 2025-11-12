@@ -4,7 +4,7 @@ import { Server } from "socket.io";
 import { Message } from "@/types";
 import { ESocketEvents } from "@/types";
 
-const HOST = "0.0.0.0"; // Allows connections from any IP
+const HOST = "localhost"; // run server on localhost
 const PORT = 4000; // Port to run the WebSocket server
 
 // Storage in memory for message history
