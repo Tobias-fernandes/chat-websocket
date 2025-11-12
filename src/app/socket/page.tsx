@@ -42,6 +42,7 @@ export default function ChatPage() {
 
   /** Connected to the server */
   const handleConnect = useCallback(() => {
+    console.log("Connected to server");
     setIsConnected(true); // update connection state
     setTransport(socket.io.engine.transport.name); // set the current transport
 
@@ -62,12 +63,14 @@ export default function ChatPage() {
 
   /** Disconnected from the server */
   const handleDisconnect = () => {
+    console.log("Disconnected from server");
     setIsConnected(false);
     setTransport("N/A");
   };
 
   /** New message received */
   const handleMessage = (data: Message) => {
+    console.log("New message received:", data);
     setMessages((prev) => [...prev, data]);
   };
 
@@ -90,6 +93,8 @@ export default function ChatPage() {
 
   /** Initializes the socket */
   useEffect(() => {
+    console.log("Initializing socket...");
+
     loadUserName();
 
     if (socket.connected) handleConnect();
