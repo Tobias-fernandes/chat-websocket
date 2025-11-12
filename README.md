@@ -13,11 +13,17 @@ pnpm i
 
 # then
 
+// this branch is set to run the project on localhost
+git checkout develop
+
+# then
+
 # each command must be sent in diffente terminals
 npm run ws-socketio
 npm run dev
 
 # or
+
 # each command must be sent in diffente terminals
 pnpm ws-socketio
 pnpm dev
