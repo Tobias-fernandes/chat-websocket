@@ -3,7 +3,8 @@ import { createServer } from "node:http";
 import { Server } from "socket.io";
 import { Message } from "@/types";
 
-const port = 4000;
+const HOST = "0.0.0.0"; // Escuta em todas as interfaces de rede (importante!)
+const PORT = 4000;
 
 // Armazenamento em memória simples para o histórico de mensagens
 const messages: Message[] = [
@@ -21,8 +22,8 @@ const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
     origin: [
-      "https://chat-websocket-blush.vercel.app", // Front hospedado na Vercel
-      "http://localhost:3000", // Ambiente local
+      "https://chat-websocket-blush.vercel.app", // seu front na Vercel
+      "http://localhost:3000", // opcional, pra testes locais
     ],
     methods: ["GET", "POST"],
     credentials: true,
@@ -31,7 +32,7 @@ const io = new Server(httpServer, {
 
 // Eventos do socket
 io.on("connection", (socket) => {
-  console.log(`🟢 Novo cliente conectado: ${socket.id}`);
+  console.log(`Novo cliente conectado: ${socket.id}`);
 
   socket.on("getPreviousMessages", () => {
     socket.emit("previousMessages", messages);
@@ -44,13 +45,13 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", () => {
-    console.log(`🔴 Cliente desconectado: ${socket.id}`);
+    console.log(`Cliente desconectado: ${socket.id}`);
   });
 });
 
 // Inicializa o servidor HTTP
-httpServer.listen(port, () => {
-  console.log(`🚀 Servidor WebSocket rodando na porta ${port}`);
-  console.log("✅ Execute agora:");
-  console.log("   cloudflared tunnel --url http://localhost:4000");
+httpServer.listen(PORT, HOST, () => {
+  console.log(`Servidor WebSocket rodando na porta ${PORT}`);
+  console.log("Execute agora:");
+  console.log("cloudflared tunnel --url http://localhost:4000");
 });
