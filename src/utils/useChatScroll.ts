@@ -2,22 +2,22 @@ import { useRef, useLayoutEffect, DependencyList, RefObject } from "react";
 
 interface UseChatScrollOptions {
   /**
-   * Quantos pixels de distância do fundo para
-   * ainda ser considerado "perto do fundo".
+   * How many pixels from the bottom to
+   * still be considered "near the bottom".
    * @default 65
    */
   threshold?: number;
 }
 
 /**
- * Hook para controlar o scroll automático de um container de chat.
- * Ele rola para o final no primeiro carregamento e
- * rola para o final em novas mensagens, mas apenas se o
- * usuário já estava perto do fundo.
- *
- * @param dependencies - Array de dependências que disparam o efeito (ex: [messages])
- * @param options - Opções de configuração (ex: threshold)
- * @returns Um React Ref para ser anexado ao elemento do container.
+ * Hook to automatically scroll a chat container.
+ * It scrolls to the bottom on initial load and
+ * on new messages, but only if the user
+ * was already near the bottom.
+ * @template T - The type of the HTML element (e.g., HTMLUListElement)
+ * @param dependencies - Array of dependencies that trigger the effect (e.g., [messages])
+ * @param options - Configuration options (e.g., threshold)
+ * @returns A React Ref to be attached to the container element.
  */
 export function useChatScroll<T extends HTMLElement>(
   dependencies: DependencyList,
@@ -35,13 +35,13 @@ export function useChatScroll<T extends HTMLElement>(
     const newScrollHeight = scrollHeight;
     const oldScrollHeight = prevScrollHeightRef.current;
 
-    // 1. Caso de Scroll Inicial (primeira carga)
+    // 1. Initial Scroll Case (first load)
     if (oldScrollHeight === null || oldScrollHeight === 0) {
       chatContainer.scrollTop = newScrollHeight;
     }
-    // 2. Caso de Nova Mensagem (altura aumentou)
+    // 2. New Message Case (height increased)
     else if (newScrollHeight > oldScrollHeight) {
-      // Verifica se o usuário estava perto do final *antes* da nova mensagem
+      // Check if the user was near the bottom *before* the new message
       const wasNearBottom =
         oldScrollHeight - clientHeight - scrollTop < threshold;
 
@@ -50,10 +50,10 @@ export function useChatScroll<T extends HTMLElement>(
       }
     }
 
-    // Sempre atualiza o ref com a altura mais recente
+    // Always update the ref with the latest height
     prevScrollHeightRef.current = newScrollHeight;
 
-    // Usamos ...dependencies para garantir que o array seja espalhado
+    // We use ...dependencies to ensure the array is spread
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [...dependencies]);
 

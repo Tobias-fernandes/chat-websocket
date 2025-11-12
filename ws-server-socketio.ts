@@ -2,11 +2,12 @@ import express from "express";
 import { createServer } from "node:http";
 import { Server } from "socket.io";
 import { Message } from "@/types";
+import { ESocketEvents } from "@/types";
 
-const HOST = "0.0.0.0"; // Escuta em todas as interfaces de rede (importante!)
-const PORT = 4000;
+const HOST = "0.0.0.0"; // Allows connections from any IP
+const PORT = 4000; // Port to run the WebSocket server
 
-// Armazenamento em memória simples para o histórico de mensagens
+// Storage in memory for message history
 const messages: Message[] = [
   {
     msg: "Welcome to the chat!",
@@ -15,43 +16,47 @@ const messages: Message[] = [
   },
 ];
 
-const app = express();
-const httpServer = createServer(app);
+const app = express(); // Create an instance of Express
+const httpServer = createServer(app); // Create the HTTP server
 
-// Configuração do servidor Socket.IO
+// Socket.IO server configuration
 const io = new Server(httpServer, {
+  // CORS settings to allow connections from the frontend
   cors: {
     origin: [
-      "https://chat-websocket-blush.vercel.app", // seu front na Vercel
-      "http://localhost:3000", // opcional, pra testes locais
+      "https://chat-websocket-blush.vercel.app", // frontend hosted on Vercel
+      "http://localhost:3000", // local testing
     ],
     methods: ["GET", "POST"],
     credentials: true,
   },
 });
 
-// Eventos do socket
-io.on("connection", (socket) => {
-  console.log(`Novo cliente conectado: ${socket.id}`);
+// Socket events
 
-  socket.on("getPreviousMessages", () => {
-    socket.emit("previousMessages", messages);
+// Fires when a client connects
+io.on(ESocketEvents.CONNECTION, (socket) => {
+  console.log(`New client connected: ${socket.id}`);
+
+  // Sends the message history to the client that just connected
+  socket.on(ESocketEvents.GET_PREVIOUS_MESSAGES, () => {
+    socket.emit(ESocketEvents.PREVIOUS_MESSAGES, messages);
   });
 
-  socket.on("message", (data: Message) => {
+  // Receives a new message from the client
+  socket.on(ESocketEvents.MESSAGE, (data: Message) => {
     console.log(`${data.name}: ${data.msg}`);
-    messages.push(data);
-    io.emit("message", data);
+    messages.push(data); // Stores the message in the history
+    io.emit(ESocketEvents.MESSAGE, data); // Emits the message to all connected clients
   });
 
-  socket.on("disconnect", () => {
-    console.log(`Cliente desconectado: ${socket.id}`);
+  // Fires when a client disconnects
+  socket.on(ESocketEvents.DISCONNECT, () => {
+    console.log(`Client disconnected: ${socket.id}`);
   });
 });
 
-// Inicializa o servidor HTTP
+// Initializes the HTTP server
 httpServer.listen(PORT, HOST, () => {
-  console.log(`Servidor WebSocket rodando na porta ${PORT}`);
-  console.log("Execute agora:");
-  console.log("cloudflared tunnel --url http://localhost:4000");
+  console.log(`WebSocket server running on port ${PORT}`);
 });

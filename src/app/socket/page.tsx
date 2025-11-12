@@ -19,94 +19,95 @@ import { useChatScroll } from "@/utils/useChatScroll";
 import { getOrCreateUserId } from "@/utils/getUserID";
 import { onEnterPress } from "@/utils/submitInputWithEnter";
 import { Message } from "@/types";
+import { ESocketEvents } from "@/types";
 
 export default function ChatPage() {
   const router = useRouter();
   const userId = getOrCreateUserId();
 
-  const [isConnected, setIsConnected] = useState(false); // estado de conexão
-  const [transport, setTransport] = useState("N/A"); // transporte atual
-  const [messages, setMessages] = useState<Message[]>([]); // mensagens do chat
-  const [inputValue, setInputValue] = useState(""); // valor do input
-  const [username, setUsername] = useState(""); // nome do usuário
-  const [isLoading, setIsLoading] = useState(true); // estado de loading
-  const [hasRequestedHistory, setHasRequestedHistory] = useState(false); // estado para monitorar se o histórico já foi solicitado
+  const [isConnected, setIsConnected] = useState(false); // connection state
+  const [transport, setTransport] = useState("N/A"); // current transport
+  const [messages, setMessages] = useState<Message[]>([]); // chat messages
+  const [inputValue, setInputValue] = useState(""); // input value
+  const [username, setUsername] = useState(""); // user name
+  const [isLoading, setIsLoading] = useState(true); // loading state
+  const [hasRequestedHistory, setHasRequestedHistory] = useState(false); // state to track if history has been requested
 
-  /** Carrega o nome do usuário */
+  /** Loads the user name */
   const loadUserName = useCallback(() => {
-    const storedName = localStorage.getItem("username"); // obtém nome do localStorage
-    if (!storedName) return router.push("/"); // caso não exista, redireciona para a página inicial
-    setUsername(storedName); // seta o nome de usuário no state
+    const storedName = localStorage.getItem("username"); // gets name from localStorage
+    if (!storedName) return router.push("/"); // if it doesn't exist, redirect to the home page
+    setUsername(storedName); // set the user name in the state
   }, [router]);
 
-  /** Conectou no servidor */
+  /** Connected to the server */
   const handleConnect = useCallback(() => {
-    setIsConnected(true); // atualiza estado de conexão
-    setTransport(socket.io.engine.transport.name); // define o transporte atual
+    setIsConnected(true); // update connection state
+    setTransport(socket.io.engine.transport.name); // set the current transport
 
-    // Solicita o histórico de mensagens apenas uma vez
+    // Requests message history only once
     if (!hasRequestedHistory) {
-      // Pequeno delay para garantir que o socket esteja totalmente pronto antes de solicitar o histórico
+      // Small delay to ensure the socket is fully ready before requesting history
       setTimeout(() => {
-        socket.emit("getPreviousMessages");
+        socket.emit(ESocketEvents.GET_PREVIOUS_MESSAGES);
       }, 200);
       setHasRequestedHistory(true);
     }
 
-    // Monitora mudanças no transporte (ex: polling -> websocket)
-    socket.io.engine.on("upgrade", (t) => {
+    // Monitors changes in transport (e.g., polling -> websocket)
+    socket.io.engine.on(ESocketEvents.UPGRADE, (t) => {
       setTransport(t.name);
     });
   }, [hasRequestedHistory]);
 
-  /** Desconectou */
+  /** Disconnected from the server */
   const handleDisconnect = () => {
     setIsConnected(false);
     setTransport("N/A");
   };
 
-  /** Mensagem nova recebida */
+  /** New message received */
   const handleMessage = (data: Message) => {
     setMessages((prev) => [...prev, data]);
   };
 
-  /** Recebe histórico completo */
+  /** Receives full history */
   const handlePreviousMessages = (data: Message[]) => {
-    console.log("📜 Histórico recebido:", data);
+    console.log("Received history:", data);
     setMessages(data);
     setIsLoading(false);
   };
 
-  /** Envia uma nova mensagem */
+  /** Sends a new message */
   const handleSendMessage = () => {
     if (!inputValue.trim() || !username) return;
 
     const messageData = { msg: inputValue, id: userId, name: username };
-    socket.emit("message", messageData);
+    socket.emit(ESocketEvents.MESSAGE, messageData);
 
     setInputValue("");
   };
 
-  /** Inicialização do socket */
+  /** Initializes the socket */
   useEffect(() => {
     loadUserName();
 
     if (socket.connected) handleConnect();
 
-    socket.once("connect", handleConnect);
-    socket.on("disconnect", handleDisconnect);
-    socket.on("message", handleMessage);
-    socket.on("previousMessages", handlePreviousMessages);
+    socket.once(ESocketEvents.CONNECTION, handleConnect);
+    socket.on(ESocketEvents.DISCONNECT, handleDisconnect);
+    socket.on(ESocketEvents.MESSAGE, handleMessage);
+    socket.on(ESocketEvents.PREVIOUS_MESSAGES, handlePreviousMessages);
 
     return () => {
-      socket.off("connect", handleConnect);
-      socket.off("disconnect", handleDisconnect);
-      socket.off("message", handleMessage);
-      socket.off("previousMessages", handlePreviousMessages);
+      socket.off(ESocketEvents.CONNECTION, handleConnect);
+      socket.off(ESocketEvents.DISCONNECT, handleDisconnect);
+      socket.off(ESocketEvents.MESSAGE, handleMessage);
+      socket.off(ESocketEvents.PREVIOUS_MESSAGES, handlePreviousMessages);
     };
   }, [loadUserName, handleConnect]);
 
-  // Hook para rolar o chat automaticamente
+  // Hook to automatically scroll the chat
   const chatContainerRef = useChatScroll<HTMLUListElement>([messages]);
 
   if (isLoading) {
