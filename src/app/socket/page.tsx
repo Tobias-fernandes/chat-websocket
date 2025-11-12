@@ -138,7 +138,7 @@ export default function ChatPage() {
         <ul
           id="chat-container"
           ref={chatContainerRef}
-          className="overflow-auto bg-accent-foreground h-screen rounded-2xl flex flex-col gap-2 max-h-[75vh] px-4 py-6"
+          className="overflow-auto bg-accent-foreground h-screen rounded-2xl flex flex-col gap-2 max-h-[68vh] px-4 py-6"
         >
           {!messages.length && (
             <li className="text-center text-gray-500">
