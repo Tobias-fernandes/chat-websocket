@@ -7,9 +7,7 @@ Libraries used in this project:
 First, pull the project into your workspace. Then, type the following commands below:
 
 ```bash
-npm i
-# or
-pnpm i
+pnpm install
 
 # then
 
@@ -17,12 +15,6 @@ pnpm i
 git checkout develop
 
 # then
-
-# each command must be sent in diffente terminals
-npm run ws-socketio
-npm run dev
-
-# or
 
 # each command must be sent in diffente terminals
 pnpm ws-socketio
